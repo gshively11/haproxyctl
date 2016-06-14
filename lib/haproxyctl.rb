@@ -47,16 +47,16 @@ module HAProxyCTL
     end
   end
 
-  def unixsock(command)
+  def unixsock(command, process)
     output = []
     runs = 0
 
     begin
-      ctl = UNIXSocket.open(socket)
+      ctl = UNIXSocket.open(socket(process))
       if ctl
         ctl.write "#{command}\r\n"
       else
-        puts "cannot talk to #{socket}"
+        puts "cannot talk to #{socket(process)}"
       end
     rescue Errno::EPIPE
       ctl.close
@@ -65,7 +65,7 @@ module HAProxyCTL
       if  runs < 4
         retry
       else
-        puts "the unix socket at #{socket} closed before we could complete this request"
+        puts "the unix socket at #{socket(process)} closed before we could complete this request"
         exit
       end
     end
@@ -100,8 +100,10 @@ usage: #{$PROGRAM_NAME} <argument>
     show backends               : show status of backend pools of servers
     enable all <server>         : re-enable a server previously in maint mode on multiple backends
     disable all <server>        : disable a server from every backend it exists
+    drain all <server>          : drain a server from every backend it exists
     enable all EXCEPT <server>  : like 'enable all', but re-enables every backend except for <server>
     disable all EXCEPT <server> : like 'disable all', but disables every backend except for <server>
+    drain all EXCEPT <server>   : like 'drain all', but drains every backend except for <server>
     clear counters              : clear max statistics counters (add 'all' for all counters)
     help                        : this message
     prompt                      : toggle interactive mode with prompt
